@@ -1,6 +1,111 @@
 import SwiftUI
 import Combine
 
+extension String {
+    func localized(_ locale: Locale) -> String {
+        let translations: [String: [String: String]] = [
+            "en": [
+                "game_title": "Snakes & Ladders",
+                "start_game": "Start Game",
+                "roll_dice": "Roll Dice",
+                "player_turn": "'s Turn",
+                "winner": "Winner",
+                "play_again": "Play Again",
+                "game_history": "Game History",
+                "player_name": "Player",
+                "board_size": "Board Size",
+                "players_count": "Players",
+                "game_duration": "Duration",
+                "date": "Date",
+                "snakes_and_ladders": "Snakes and Ladders",
+                "back": "Back",
+                "done": "Done",
+                "settings": "Settings",
+                "language": "Language",
+                "english": "English",
+                "russian": "Russian",
+                "no_games_played": "No games played yet",
+                "play_game_to_see_history": "Play a game to see history here",
+                "snake": "Snake!",
+                "ladder": "Ladder!",
+                "current_turn": "Current Turn",
+                "position": "Position"
+            ],
+            "ru": [
+                "game_title": "Змеи и Лестницы",
+                "start_game": "Начать Игру",
+                "roll_dice": "Бросить Кубик",
+                "player_turn": "ходит",
+                "winner": "Победитель",
+                "play_again": "Играть Снова",
+                "game_history": "История Игр",
+                "player_name": "Игрок",
+                "board_size": "Размер поля",
+                "players_count": "Игроки",
+                "game_duration": "Продолжительность",
+                "date": "Дата",
+                "snakes_and_ladders": "Змеи и Лестницы",
+                "back": "Назад",
+                "done": "Готово",
+                "settings": "Настройки",
+                "language": "Язык",
+                "english": "Английский",
+                "russian": "Русский",
+                "no_games_played": "Пока нет сыгранных игр",
+                "play_game_to_see_history": "Сыграйте в игру, чтобы увидеть историю",
+                "snake": "Змея!",
+                "ladder": "Лестница!",
+                "current_turn": "Текущий ход",
+                "position": "Позиция"
+            ]
+        ]
+        
+        let languageCode = locale.identifier.prefix(2)
+        return translations[String(languageCode)]?[self] ?? self
+    }
+}
+
+class LocalizationManager: ObservableObject {
+    @Published var currentLocale: Locale = .current
+    
+    func setLocale(_ locale: Locale) {
+        currentLocale = locale
+    }
+}
+
+struct LocalizedStrings {
+    static func localizedString(_ key: String, locale: Locale) -> String {
+        key.localized(locale)
+    }
+    
+    // Computed properties that use current locale
+    static func gameTitle(_ locale: Locale) -> String { localizedString("game_title", locale: locale) }
+    static func startGame(_ locale: Locale) -> String { localizedString("start_game", locale: locale) }
+    static func rollDice(_ locale: Locale) -> String { localizedString("roll_dice", locale: locale) }
+    static func playerTurn(_ locale: Locale) -> String { localizedString("player_turn", locale: locale) }
+    static func winner(_ locale: Locale) -> String { localizedString("winner", locale: locale) }
+    static func playAgain(_ locale: Locale) -> String { localizedString("play_again", locale: locale) }
+    static func gameHistory(_ locale: Locale) -> String { localizedString("game_history", locale: locale) }
+    static func playerName(_ locale: Locale) -> String { localizedString("player_name", locale: locale) }
+    static func boardSize(_ locale: Locale) -> String { localizedString("board_size", locale: locale) }
+    static func playersCount(_ locale: Locale) -> String { localizedString("players_count", locale: locale) }
+    static func gameDuration(_ locale: Locale) -> String { localizedString("game_duration", locale: locale) }
+    static func date(_ locale: Locale) -> String { localizedString("date", locale: locale) }
+    static func snakesAndLadders(_ locale: Locale) -> String { localizedString("snakes_and_ladders", locale: locale) }
+    static func back(_ locale: Locale) -> String { localizedString("back", locale: locale) }
+    static func done(_ locale: Locale) -> String { localizedString("done", locale: locale) }
+    static func settings(_ locale: Locale) -> String { localizedString("settings", locale: locale) }
+    static func language(_ locale: Locale) -> String { localizedString("language", locale: locale) }
+    static func english(_ locale: Locale) -> String { localizedString("english", locale: locale) }
+    static func russian(_ locale: Locale) -> String { localizedString("russian", locale: locale) }
+    static func noGamesPlayed(_ locale: Locale) -> String { localizedString("no_games_played", locale: locale) }
+    static func playGameToSeeHistory(_ locale: Locale) -> String { localizedString("play_game_to_see_history", locale: locale) }
+    static func snake(_ locale: Locale) -> String { localizedString("snake", locale: locale) }
+    static func ladder(_ locale: Locale) -> String { localizedString("ladder", locale: locale) }
+    static func currentTurn(_ locale: Locale) -> String { localizedString("current_turn", locale: locale) }
+    static func position(_ locale: Locale) -> String { localizedString("position", locale: locale) }
+}
+
 struct Player: Identifiable {
     let id: Int
     var position: Int
@@ -36,7 +141,7 @@ struct GameBoard {
 }
 
 struct GameResult: Codable, Identifiable {
-    var id = UUID()
+    let id = UUID()
     let date: Date
     let winner: String
     let players: Int
@@ -77,12 +182,13 @@ class GameManager: ObservableObject {
     }
     
     static func generateRandomBoard() -> GameBoard {
-        let size = 25
+        let size = 100 // 10x10 board
         let edge = Int(sqrt(Double(size)))
         
         var snakes: [Snake] = []
         var ladders: [Ladder] = []
         
+        // Generate 5-8 snakes
         let snakeCount = Int.random(in: 5...8)
         for _ in 0..<snakeCount {
             let head = Int.random(in: (edge * 2)...(size - 2))
@@ -90,6 +196,7 @@ class GameManager: ObservableObject {
             snakes.append(Snake(head: head, tail: tail))
         }
         
+        // Generate 5-8 ladders
         let ladderCount = Int.random(in: 5...8)
         for _ in 0..<ladderCount {
             let bottom = Int.random(in: 1...(size - edge * 2))
@@ -117,6 +224,7 @@ class GameManager: ObservableObject {
         isRollingDice = true
         diceValue = 0
         
+        // Dice rolling animation
         var rollCount = 0
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
             rollCount += 1
@@ -134,6 +242,7 @@ class GameManager: ObservableObject {
         let newPosition = players[currentPlayerIndex].position + diceValue
         
         if newPosition >= gameBoard.size - 1 {
+            // Player wins
             players[currentPlayerIndex].position = gameBoard.size - 1
             endGame()
         } else {
@@ -141,6 +250,7 @@ class GameManager: ObservableObject {
             gameState = .moving
             moveAnimation = true
             
+            // Check for snakes and ladders after move animation
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.checkSpecialCells()
             }
@@ -150,6 +260,7 @@ class GameManager: ObservableObject {
     private func checkSpecialCells() {
         let currentPosition = players[currentPlayerIndex].position
         
+        // Check for snakes
         if let snake = gameBoard.snakes.first(where: { $0.head == currentPosition }) {
             showSnakeAnimation = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -160,6 +271,7 @@ class GameManager: ObservableObject {
             return
         }
         
+        // Check for ladders
         if let ladder = gameBoard.ladders.first(where: { $0.bottom == currentPosition }) {
             showLadderAnimation = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -219,29 +331,13 @@ class GameManager: ObservableObject {
     }
 }
 
-struct LocalizedStrings {
-    static func localizedString(_ key: String) -> String {
-        NSLocalizedString(key, comment: "")
-    }
-    
-    static let startGame = localizedString("Начать игру")
-    static let rollDice = localizedString("Сделать ход")
-    static let playerTurn = localizedString("player_turn")
-    static let winner = localizedString("Победил")
-    static let playAgain = localizedString("Играть снова")
-    static let gameHistory = localizedString("История")
-    static let playerName = localizedString("Имя")
-    static let boardSize = localizedString("Размер карты")
-    static let playersCount = localizedString("количество игроков")
-    static let date = localizedString("date")
-    static let snakesAndLadders = localizedString("Змеи и лестницы")
-}
-
 struct ContentView: View {
     @StateObject private var gameManager = GameManager()
+    @StateObject private var localizationManager = LocalizationManager()
     @State private var showingSetup = true
     @State private var playerNames: [String] = ["", "", "", "", "", ""]
     @State private var showingHistory = false
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationView {
@@ -262,24 +358,31 @@ struct ContentView: View {
                                 gameManager.startGame(playerNames: validNames)
                                 showingSetup = false
                             }
-                        }
+                        },
+                        localizationManager: localizationManager
                     )
                 } else {
-                    GameView(gameManager: gameManager)
+                    GameView(gameManager: gameManager, localizationManager: localizationManager)
                 }
             }
+            .navigationTitle(LocalizedStrings.gameTitle(localizationManager.currentLocale))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if !showingSetup {
-                        Button(LocalizedStrings.gameHistory) {
-                            showingHistory = true
+                        HStack {
+                            Button(LocalizedStrings.gameHistory(localizationManager.currentLocale)) {
+                                showingHistory = true
+                            }
+                            Button(LocalizedStrings.settings(localizationManager.currentLocale)) {
+                                showingSettings = true
+                            }
                         }
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarLeading) {
                     if !showingSetup {
-                        Button("Back") {
+                        Button(LocalizedStrings.back(localizationManager.currentLocale)) {
                             showingSetup = true
                             gameManager.resetGame()
                         }
@@ -287,7 +390,10 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showingHistory) {
-                GameHistoryView(gameManager: gameManager)
+                GameHistoryView(gameManager: gameManager, localizationManager: localizationManager)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(localizationManager: localizationManager)
             }
         }
     }
@@ -296,26 +402,27 @@ struct ContentView: View {
 struct GameSetupView: View {
     @Binding var playerNames: [String]
     let onStart: () -> Void
+    @ObservedObject var localizationManager: LocalizationManager
     
     var body: some View {
         VStack(spacing: 20) {
-            Text(LocalizedStrings.snakesAndLadders)
+            Text(LocalizedStrings.snakesAndLadders(localizationManager.currentLocale))
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.blue)
             
-            Text("2-6 \(LocalizedStrings.playersCount)")
+            Text("2-6 \(LocalizedStrings.playersCount(localizationManager.currentLocale))")
                 .font(.title2)
                 .foregroundColor(.secondary)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 15) {
                 ForEach(0..<6, id: \.self) { index in
                     VStack(alignment: .leading) {
-                        Text("\(LocalizedStrings.playerName) \(index + 1)")
+                        Text("\(LocalizedStrings.playerName(localizationManager.currentLocale)) \(index + 1)")
                             .font(.headline)
                             .foregroundColor(.primary)
                         
-                        TextField("Player \(index + 1)", text: $playerNames[index])
+                        TextField("\(LocalizedStrings.playerName(localizationManager.currentLocale)) \(index + 1)", text: $playerNames[index])
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                 }
@@ -323,7 +430,7 @@ struct GameSetupView: View {
             .padding()
             
             Button(action: onStart) {
-                Text(LocalizedStrings.startGame)
+                Text(LocalizedStrings.startGame(localizationManager.currentLocale))
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
@@ -343,16 +450,32 @@ struct GameSetupView: View {
 
 struct GameView: View {
     @ObservedObject var gameManager: GameManager
+    @ObservedObject var localizationManager: LocalizationManager
     
     var body: some View {
         VStack(spacing: 20) {
+            // Current player info
+            if gameManager.gameState != .gameOver {
+                VStack {
+                    Text(LocalizedStrings.currentTurn(localizationManager.currentLocale))
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    Text("\(gameManager.currentPlayer.name) \(LocalizedStrings.playerTurn(localizationManager.currentLocale))")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(gameManager.currentPlayer.color)
+                }
+            }
+            
+            // Game board
             BoardView(gameManager: gameManager)
                 .padding()
             
+            // Player info and controls
             VStack(spacing: 15) {
                 if gameManager.gameState == .gameOver, let winner = gameManager.winner {
                     VStack {
-                        Text("🎉 \(LocalizedStrings.winner)!")
+                        Text("🎉 \(LocalizedStrings.winner(localizationManager.currentLocale))!")
                             .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(winner.color)
@@ -361,7 +484,7 @@ struct GameView: View {
                             .font(.title2)
                             .foregroundColor(.primary)
                         
-                        Button(LocalizedStrings.playAgain) {
+                        Button(LocalizedStrings.playAgain(localizationManager.currentLocale)) {
                             gameManager.resetGame()
                         }
                         .buttonStyle(.borderedProminent)
@@ -371,7 +494,8 @@ struct GameView: View {
                         ForEach(gameManager.players) { player in
                             PlayerIndicatorView(
                                 player: player,
-                                isCurrent: player.id == gameManager.currentPlayer.id
+                                isCurrent: player.id == gameManager.currentPlayer.id,
+                                localizationManager: localizationManager
                             )
                         }
                     }
@@ -382,7 +506,7 @@ struct GameView: View {
                     )
                     
                     Button(action: gameManager.rollDice) {
-                        Text(LocalizedStrings.rollDice)
+                        Text(LocalizedStrings.rollDice(localizationManager.currentLocale))
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(.white)
@@ -402,11 +526,11 @@ struct GameView: View {
         }
         .overlay {
             if gameManager.showSnakeAnimation {
-                SnakeAnimationView()
+                SnakeAnimationView(localizationManager: localizationManager)
             }
             
             if gameManager.showLadderAnimation {
-                LadderAnimationView()
+                LadderAnimationView(localizationManager: localizationManager)
             }
         }
     }
@@ -517,6 +641,7 @@ struct CellView: View {
 struct PlayerIndicatorView: View {
     let player: Player
     let isCurrent: Bool
+    @ObservedObject var localizationManager: LocalizationManager
     
     var body: some View {
         HStack(spacing: 8) {
@@ -528,7 +653,7 @@ struct PlayerIndicatorView: View {
                 Text(player.name)
                     .font(.caption)
                     .fontWeight(isCurrent ? .bold : .regular)
-                Text("\(player.position + 1)")
+                Text("\(LocalizedStrings.position(localizationManager.currentLocale)): \(player.position + 1)")
                     .font(.caption2)
                     .foregroundColor(.secondary)
             }
@@ -570,7 +695,9 @@ struct DiceView: View {
     }
 }
 
+// MARK: - Animation Views
 struct SnakeAnimationView: View {
+    @ObservedObject var localizationManager: LocalizationManager
     @State private var scale = 0.1
     
     var body: some View {
@@ -583,7 +710,7 @@ struct SnakeAnimationView: View {
                     .font(.system(size: 80))
                     .scaleEffect(scale)
                 
-                Text("Змея!")
+                Text(LocalizedStrings.snake(localizationManager.currentLocale))
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -598,6 +725,7 @@ struct SnakeAnimationView: View {
 }
 
 struct LadderAnimationView: View {
+    @ObservedObject var localizationManager: LocalizationManager
     @State private var scale = 0.1
     
     var body: some View {
@@ -610,7 +738,7 @@ struct LadderAnimationView: View {
                     .font(.system(size: 80))
                     .scaleEffect(scale)
                 
-                Text("Лестница!")
+                Text(LocalizedStrings.ladder(localizationManager.currentLocale))
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -626,6 +754,7 @@ struct LadderAnimationView: View {
 
 struct GameHistoryView: View {
     @ObservedObject var gameManager: GameManager
+    @ObservedObject var localizationManager: LocalizationManager
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -633,10 +762,10 @@ struct GameHistoryView: View {
             Group {
                 if gameManager.gameHistory.isEmpty {
                     VStack {
-                        Text("No games played yet")
+                        Text(LocalizedStrings.noGamesPlayed(localizationManager.currentLocale))
                             .font(.title2)
                             .foregroundColor(.secondary)
-                        Text("Play a game to see history here")
+                        Text(LocalizedStrings.playGameToSeeHistory(localizationManager.currentLocale))
                             .font(.body)
                             .foregroundColor(.secondary)
                     }
@@ -648,20 +777,20 @@ struct GameHistoryView: View {
                                     .font(.headline)
                                     .foregroundColor(.primary)
                                 Spacer()
-                                Text("\(result.players) players")
+                                Text("\(result.players) \(LocalizedStrings.playersCount(localizationManager.currentLocale))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             
                             HStack {
-                                Text("\(LocalizedStrings.boardSize): \(result.boardSize)")
+                                Text("\(LocalizedStrings.boardSize(localizationManager.currentLocale)): \(result.boardSize)")
                                     .font(.caption)
                                 Spacer()
-                                Text(String(format: "%.1fs", result.duration))
+                                Text("\(LocalizedStrings.gameDuration(localizationManager.currentLocale)): \(String(format: "%.1fs", result.duration))")
                                     .font(.caption)
                             }
                             
-                            Text(result.date, style: .date)
+                            Text("\(LocalizedStrings.date(localizationManager.currentLocale)): \(result.date, style: .date)")
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
@@ -669,10 +798,57 @@ struct GameHistoryView: View {
                     }
                 }
             }
-            .navigationTitle(LocalizedStrings.gameHistory)
+            .navigationTitle(LocalizedStrings.gameHistory(localizationManager.currentLocale))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(LocalizedStrings.done(localizationManager.currentLocale)) {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct SettingsView: View {
+    @ObservedObject var localizationManager: LocalizationManager
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text(LocalizedStrings.language(localizationManager.currentLocale))) {
+                    Button(action: {
+                        localizationManager.setLocale(Locale(identifier: "en"))
+                    }) {
+                        HStack {
+                            Text(LocalizedStrings.english(localizationManager.currentLocale))
+                            Spacer()
+                            if localizationManager.currentLocale.identifier == "en" {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    
+                    Button(action: {
+                        localizationManager.setLocale(Locale(identifier: "ru"))
+                    }) {
+                        HStack {
+                            Text(LocalizedStrings.russian(localizationManager.currentLocale))
+                            Spacer()
+                            if localizationManager.currentLocale.identifier == "ru" {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle(LocalizedStrings.settings(localizationManager.currentLocale))
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(LocalizedStrings.done(localizationManager.currentLocale)) {
                         dismiss()
                     }
                 }
